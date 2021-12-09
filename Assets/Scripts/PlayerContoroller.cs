@@ -2,6 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum eState
+{
+    RUN,
+    JUMP,
+    ATTACK,
+    SLIDE,
+    FOCUS, // if focus button pressed
+}
+
 public class PlayerContoroller : MonoBehaviour
 {
     [SerializeField]
@@ -15,6 +24,12 @@ public class PlayerContoroller : MonoBehaviour
     private Transform[] groundPoints;
     private float overlapRadius = 0.1f;
 
+    private float moveSpeed;
+    public float MoveSpeed => moveSpeed;
+    private const float RUNSPEED = 0.01f;
+
+    private bool isAttack;
+
     private Rigidbody2D rb;
 
     private void Awake()
@@ -25,7 +40,7 @@ public class PlayerContoroller : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        moveSpeed = RUNSPEED;
     }
 
     // Update is called once per frame
@@ -44,6 +59,11 @@ public class PlayerContoroller : MonoBehaviour
         else if (rb.velocity.y > 0 && !Input.GetButton("Jump"))
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiflier - 1) * Time.deltaTime;
+        }
+
+        if (isAttack)
+        {
+            // how can I handle attack direction?
         }
     }
 
@@ -71,5 +91,10 @@ public class PlayerContoroller : MonoBehaviour
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene("Game");
         }
+    }
+
+    private void CalculateAttackSpeed(Vector2 v)
+    {
+
     }
 }
