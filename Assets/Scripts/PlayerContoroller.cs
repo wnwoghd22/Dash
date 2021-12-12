@@ -28,6 +28,11 @@ public class PlayerContoroller : MonoBehaviour
     public float MoveSpeed => moveSpeed;
     private const float RUNSPEED = 0.01f;
 
+    private eState state;
+
+    private Vector2 initAttackPos;
+    private Vector2 endAttackPos;
+
     private bool isAttack;
 
     private Rigidbody2D rb;
@@ -41,11 +46,14 @@ public class PlayerContoroller : MonoBehaviour
     void Start()
     {
         moveSpeed = RUNSPEED;
+        state = eState.RUN;
     }
 
     // Update is called once per frame
     void Update()
     {
+        HandleInput();
+
         if (Input.GetButtonDown("Jump"))
         {
             if (isOnGround())
@@ -85,15 +93,32 @@ public class PlayerContoroller : MonoBehaviour
         return false;
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void CalculateAttackSpeed(Vector2 v)
     {
-        if(collision.transform.gameObject.layer == 13) //death
+
+    }
+
+    private void HandleInput()
+    {
+        switch (state)
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("Game");
+            case eState.RUN:
+                HandleRunState();
+                break;
+            case eState.JUMP:
+                break;
+            case eState.ATTACK:
+                break;
+            case eState.SLIDE:
+                break;
+            case eState.FOCUS:
+                break;
+            default:
+                break;
         }
     }
 
-    private void CalculateAttackSpeed(Vector2 v)
+    private void HandleRunState()
     {
 
     }

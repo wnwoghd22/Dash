@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -21,4 +22,9 @@ public class GameManager : MonoBehaviour
     }
 
     public void ShiftGround() => ground.Shift(player.MoveSpeed);
+
+    public void Death()
+    {
+        SceneManager.LoadScene("Game");
+    }
 }
