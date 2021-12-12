@@ -16,6 +16,7 @@ public class PlayerContoroller : MonoBehaviour
     [SerializeField]
     [Range(1, 10)]
     private float jumpValocity;
+    private bool doubleJumped;
 
     private float fallMultiflier = 2.5f;
     private float lowJumpMultiflier = 2f;
@@ -32,8 +33,11 @@ public class PlayerContoroller : MonoBehaviour
 
     private Vector2 initAttackPos;
     private Vector2 endAttackPos;
-
+    private bool isAttackPressed;
     private bool isAttack;
+    private const float attackDelay = 0.5f;
+    private const float slideDelay = 0.2f;
+    private float attackDelta;
 
     private Rigidbody2D rb;
 
@@ -47,6 +51,9 @@ public class PlayerContoroller : MonoBehaviour
     {
         moveSpeed = RUNSPEED;
         state = eState.RUN;
+        doubleJumped = false;
+        isAttackPressed = false;
+        isAttack = false;
     }
 
     // Update is called once per frame
@@ -93,23 +100,51 @@ public class PlayerContoroller : MonoBehaviour
         return false;
     }
 
-    private void CalculateAttackSpeed(Vector2 v)
+    private void Attack(Vector2 v)
     {
+        v = v.normalized;
+
+        // check if slide
+        if (v.x < 0)
+        {
+            if (isOnGround())
+            {
+                state = eState.SLIDE;
+                isAttack = true;
+                attackDelta = slideDelay;
+                moveSpeed *= 0.7f;
+            }
+            return;
+        }
+
+        // attack
+        // add cos value to player speed
+        state = eState.ATTACK;
+        isAttack = true;
+        attackDelta = attackDelay;
+        moveSpeed *= (1 + v.x);
+
+        // add sin value to player object
+        rb.velocity += Vector2.up * v.y * jumpValocity;
 
     }
 
     private void HandleInput()
     {
+        Debug.Log(state);
         switch (state)
         {
             case eState.RUN:
                 HandleRunState();
                 break;
             case eState.JUMP:
+                HandleJumpState();
                 break;
             case eState.ATTACK:
+                HandleAttackState();
                 break;
             case eState.SLIDE:
+                HandleSlideState();
                 break;
             case eState.FOCUS:
                 break;
@@ -120,6 +155,70 @@ public class PlayerContoroller : MonoBehaviour
 
     private void HandleRunState()
     {
-
+        if (Input.GetButtonDown("Jump"))
+        {
+            if (isOnGround())
+            {
+                rb.velocity = Vector2.up * jumpValocity;
+                state = eState.JUMP;
+            }
+            else if (!doubleJumped)
+            {
+                rb.velocity = Vector2.up * jumpValocity;
+                state = eState.JUMP;
+                doubleJumped = true;
+            }
+        }
+        if (Input.GetMouseButtonDown(0)) //attack phase starts
+        {
+            if (isAttack) return;
+            initAttackPos = Input.mousePosition;
+            isAttackPressed = true;
+        }
+        if (Input.GetMouseButtonUp(0)) //attack phase ends
+        {
+            if (!isAttackPressed) return;
+            endAttackPos = Input.mousePosition;
+            isAttackPressed = false;
+            Vector2 attackDir = endAttackPos - initAttackPos;
+            Attack(attackDir);
+        }
+    }
+    private void HandleJumpState()
+    {
+        if (isOnGround())
+        {
+            state = eState.RUN;
+            doubleJumped = false;
+        }
+        if (Input.GetButtonDown("Jump"))
+        {
+            if (!doubleJumped)
+            {
+                rb.velocity = Vector2.up * jumpValocity;
+                doubleJumped = true;
+            }
+        }
+    }
+    private void HandleAttackState()
+    {
+        attackDelta -= 0.01f;
+        if (attackDelta < 0)
+        {
+            moveSpeed = RUNSPEED;
+            isAttack = false;
+            if (isOnGround()) state = eState.RUN;
+            else state = eState.JUMP;
+        }
+    }
+    private void HandleSlideState()
+    {
+        attackDelta -= 0.01f;
+        if (attackDelta < 0)
+        {
+            moveSpeed = RUNSPEED;
+            isAttack = false;
+            state = eState.RUN;
+        }
     }
 }
