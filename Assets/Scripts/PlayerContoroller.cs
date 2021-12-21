@@ -27,7 +27,7 @@ public class PlayerContoroller : MonoBehaviour
 
     private float moveSpeed;
     public float MoveSpeed => moveSpeed;
-    private const float RUNSPEED = 0.01f;
+    public const float RUNSPEED = 0.01f;
 
     private eState state;
 
@@ -103,6 +103,27 @@ public class PlayerContoroller : MonoBehaviour
         return false;
     }
 
+    private void HandleAttackStickForPC()
+    {
+        if (Input.GetMouseButtonDown(0)) //attack phase starts
+        {
+            if (isAttack) return;
+            initAttackPos = Input.mousePosition;
+            isAttackPressed = true;
+        }
+        if (Input.GetMouseButtonUp(0)) //attack phase ends
+        {
+            if (!isAttackPressed) return;
+            endAttackPos = Input.mousePosition;
+            isAttackPressed = false;
+            Vector2 attackDir = endAttackPos - initAttackPos;
+            Attack(attackDir);
+        }
+    }
+    private void HandleAttackStickForAndroid()
+    {
+
+    }
     private void Attack(Vector2 v)
     {
         v = v.normalized;
@@ -125,7 +146,7 @@ public class PlayerContoroller : MonoBehaviour
         state = eState.ATTACK;
         isAttack = true;
         attackDelta = attackDelay;
-        moveSpeed = RUNSPEED * v.x * attackValocity; //?
+        moveSpeed = RUNSPEED * v.x * attackValocity;
 
         // add sin value to player object
         rb.velocity += Vector2.up * v.y * attackValocity;
@@ -172,20 +193,7 @@ public class PlayerContoroller : MonoBehaviour
                 doubleJumped = true;
             }
         }
-        if (Input.GetMouseButtonDown(0)) //attack phase starts
-        {
-            if (isAttack) return;
-            initAttackPos = Input.mousePosition;
-            isAttackPressed = true;
-        }
-        if (Input.GetMouseButtonUp(0)) //attack phase ends
-        {
-            if (!isAttackPressed) return;
-            endAttackPos = Input.mousePosition;
-            isAttackPressed = false;
-            Vector2 attackDir = endAttackPos - initAttackPos;
-            Attack(attackDir);
-        }
+        HandleAttackStickForPC();
     }
     private void HandleJumpState()
     {
@@ -202,6 +210,7 @@ public class PlayerContoroller : MonoBehaviour
                 doubleJumped = true;
             }
         }
+        HandleAttackStickForPC();
     }
     private void HandleAttackState()
     {

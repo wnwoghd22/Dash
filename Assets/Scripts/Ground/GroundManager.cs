@@ -39,7 +39,6 @@ public class GroundManager : MonoBehaviour
     void Update()
     {
         Debug.Log(elements.Count);
-        GenerateGround();
     }
 
     public void Shift(float speed)
@@ -58,9 +57,9 @@ public class GroundManager : MonoBehaviour
             }
         }
     }
-    private void GenerateGround()
+    public void GenerateGround(float delta)
     {
-        termDelta -= 1.0f;
+        termDelta -= delta;
         if(termDelta < 0f)
         {
             termDelta = generateTerm;

@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     private PlayerContoroller player;
+    private readonly float defaultSpeed = PlayerContoroller.RUNSPEED;
     private GroundManager ground;
 
     // Start is called before the first frame update
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        ground.GenerateGround(player.MoveSpeed / defaultSpeed);
         ShiftGround();
     }
 

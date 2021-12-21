@@ -695,7 +695,7 @@ MonoBehaviour:
   groundPoints:
   - {fileID: 352284459}
   - {fileID: 129917985}
-  attackValocity: 0
+  attackValocity: 6
 --- !u!212 &528102321
 SpriteRenderer:
   m_ObjectHideFlags: 0
