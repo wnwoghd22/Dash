@@ -38,6 +38,9 @@ public class PlayerContoroller : MonoBehaviour
     private const float attackDelay = 0.5f;
     private const float slideDelay = 0.2f;
     private float attackDelta;
+    [SerializeField]
+    [Range(1, 10)]
+    private float attackValocity;
 
     private Rigidbody2D rb;
 
@@ -122,10 +125,10 @@ public class PlayerContoroller : MonoBehaviour
         state = eState.ATTACK;
         isAttack = true;
         attackDelta = attackDelay;
-        moveSpeed *= (1 + v.x);
+        moveSpeed = RUNSPEED * v.x * attackValocity; //?
 
         // add sin value to player object
-        rb.velocity += Vector2.up * v.y * jumpValocity;
+        rb.velocity += Vector2.up * v.y * attackValocity;
 
     }
 
