@@ -697,6 +697,8 @@ MonoBehaviour:
   - {fileID: 129917985}
   attackValocity: 6
   jumpButton: {fileID: 1826073001}
+  attackStick: {fileID: 2133168805}
+  focusStick: {fileID: 0}
 --- !u!212 &528102321
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1483,7 +1485,7 @@ GameObject:
   - component: {fileID: 2133168803}
   - component: {fileID: 2133168805}
   m_Layer: 5
-  m_Name: JoyStickBack
+  m_Name: AttackStick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

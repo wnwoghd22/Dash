@@ -33,9 +33,6 @@ public class PlayerContoroller : MonoBehaviour
 
     private Vector2 initAttackPos;
     private Vector2 endAttackPos;
-    private bool isAttackPressed;
-    private bool isAttack;
-    private const float attackDelay = 0.5f;
     private const float slideDelay = 0.2f;
     private float attackDelta;
     [SerializeField]
@@ -44,8 +41,16 @@ public class PlayerContoroller : MonoBehaviour
 
     private Rigidbody2D rb;
 
-    [SerializeField]
-    private JoyButton jumpButton;
+    [SerializeField] private JoyButton jumpButton;
+    [SerializeField] private JoyStick attackStick;
+    private bool isAttackPressed; // flag for detect the moment when up
+    private bool isAttack;
+    private const float attackDelay = 0.5f;
+    private Vector2 attackDir;
+    [SerializeField] private JoyStick focusStick;
+    private bool isFocusPressed; // flag for detect the moment when up
+    private Vector2 reflectDir;
+    private float focusEffectDelta;
 
     private void Awake()
     {
@@ -65,7 +70,7 @@ public class PlayerContoroller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleInput();
+        HandleAttackStickForAndroid();
 
         if (Input.GetButtonDown("Jump") || jumpButton.Hold)
         {
@@ -106,6 +111,10 @@ public class PlayerContoroller : MonoBehaviour
         return false;
     }
 
+    private void HandleJumpButton()
+    {
+
+    }
     private void HandleAttackStickForPC()
     {
         if (Input.GetMouseButtonDown(0)) //attack phase starts
@@ -125,7 +134,26 @@ public class PlayerContoroller : MonoBehaviour
     }
     private void HandleAttackStickForAndroid()
     {
+        if (attackStick.Up) Debug.Log("attack Up");
+        if (attackStick.Down) Debug.Log("attack Down");
 
+        if(attackStick.Hold)
+        {
+            if (!isAttackPressed) //down
+                isAttackPressed = true;
+            attackDir = attackStick.InputDir;
+        }
+        else
+        {
+            if (isAttackPressed) //up
+            {
+                isAttackPressed = false;
+                Debug.Log(attackDir);
+
+                Attack(attackDir);
+                attackDir = Vector2.zero;
+            }
+        }
     }
     private void Attack(Vector2 v)
     {
@@ -156,84 +184,20 @@ public class PlayerContoroller : MonoBehaviour
 
     }
 
-    private void HandleInput()
+    private void HandleFocusStick()
     {
-        //Debug.Log(state);
-        switch (state)
+        if (focusStick.Hold)
         {
-            case eState.RUN:
-                HandleRunState();
-                break;
-            case eState.JUMP:
-                HandleJumpState();
-                break;
-            case eState.ATTACK:
-                HandleAttackState();
-                break;
-            case eState.SLIDE:
-                HandleSlideState();
-                break;
-            case eState.FOCUS:
-                break;
-            default:
-                break;
-        }
-    }
+            reflectDir = focusStick.InputDir;
 
-    private void HandleRunState()
-    {
-        if (Input.GetButtonDown("Jump"))
-        {
-            if (isOnGround())
-            {
-                rb.velocity = Vector2.up * jumpValocity;
-                state = eState.JUMP;
-            }
-            else if (!doubleJumped)
-            {
-                rb.velocity = Vector2.up * jumpValocity;
-                state = eState.JUMP;
-                doubleJumped = true;
-            }
+            // set kernel effect parameter
+            // float myValue = 1.0f;
+            // Shader.SetGlobalFloat("_myValue", myValue);
         }
-        HandleAttackStickForPC();
-    }
-    private void HandleJumpState()
-    {
-        if (isOnGround())
+        else
         {
-            state = eState.RUN;
-            doubleJumped = false;
-        }
-        if (Input.GetButtonDown("Jump"))
-        {
-            if (!doubleJumped)
-            {
-                rb.velocity = Vector2.up * jumpValocity;
-                doubleJumped = true;
-            }
-        }
-        HandleAttackStickForPC();
-    }
-    private void HandleAttackState()
-    {
-        attackDelta -= 0.01f;
-        if (attackDelta < 0)
-        {
-            moveSpeed = RUNSPEED;
-            isAttack = false;
-            if (isOnGround()) state = eState.RUN;
-            else state = eState.JUMP;
-        }
-    }
-    private void HandleSlideState()
-    {
-        attackDelta -= 0.01f;
-        if (attackDelta < 0)
-        {
-            moveSpeed = RUNSPEED;
-            isAttack = false;
-            state = eState.RUN;
+            Debug.Log(reflectDir);
+            reflectDir = Vector2.zero;
         }
     }
 }
