@@ -44,6 +44,9 @@ public class PlayerContoroller : MonoBehaviour
 
     private Rigidbody2D rb;
 
+    [SerializeField]
+    private JoyButton jumpButton;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -64,7 +67,7 @@ public class PlayerContoroller : MonoBehaviour
     {
         HandleInput();
 
-        if (Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown("Jump") || jumpButton.Hold)
         {
             if (isOnGround())
                 rb.velocity = Vector2.up * jumpValocity;
@@ -74,7 +77,7 @@ public class PlayerContoroller : MonoBehaviour
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiflier - 1) * Time.deltaTime;
         } 
-        else if (rb.velocity.y > 0 && !Input.GetButton("Jump"))
+        else if (rb.velocity.y > 0 && (!Input.GetButton("Jump") && !jumpButton.Hold))
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiflier - 1) * Time.deltaTime;
         }
@@ -155,7 +158,7 @@ public class PlayerContoroller : MonoBehaviour
 
     private void HandleInput()
     {
-        Debug.Log(state);
+        //Debug.Log(state);
         switch (state)
         {
             case eState.RUN:

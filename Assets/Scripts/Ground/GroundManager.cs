@@ -23,7 +23,7 @@ public class GroundManager : MonoBehaviour
         //temp code
         elements.AddRange(FindObjectsOfType<GroundElement>());
 
-        Debug.Log(elements.Count);
+        //Debug.Log(elements.Count);
 
         Vector3 screenGenPos = new Vector3(Screen.width, 0, 0);
         Vector3 tempGenPos = Camera.main.ScreenToWorldPoint(screenGenPos);
@@ -38,7 +38,7 @@ public class GroundManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(elements.Count);
+        //Debug.Log(elements.Count);
     }
 
     public void Shift(float speed)
@@ -65,7 +65,7 @@ public class GroundManager : MonoBehaviour
             termDelta = generateTerm;
 
             int r = Random.Range(0, 5); // 0 ~ 4
-            Debug.Log(r);
+            //Debug.Log(r);
 
             if (r < 3)
             {
