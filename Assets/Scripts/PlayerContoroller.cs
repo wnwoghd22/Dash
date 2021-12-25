@@ -27,7 +27,7 @@ public class PlayerContoroller : MonoBehaviour
 
     private float moveSpeed;
     public float MoveSpeed => moveSpeed;
-    public const float RUNSPEED = 0.01f;
+    public const float RUNSPEED = 0.01f; // default run speed for reset speed becoming run state.
 
     private eState state;
 
@@ -42,6 +42,7 @@ public class PlayerContoroller : MonoBehaviour
     private Rigidbody2D rb;
 
     [SerializeField] private JoyButton jumpButton;
+    private bool isJumpPressed;
     [SerializeField] private JoyStick attackStick;
     private bool isAttackPressed; // flag for detect the moment when up
     private bool isAttack;
@@ -50,6 +51,8 @@ public class PlayerContoroller : MonoBehaviour
     [SerializeField] private JoyStick focusStick;
     private bool isFocusPressed; // flag for detect the moment when up
     private Vector2 reflectDir;
+    private eState previousState;
+    private float previousSpeed;
     private float focusEffectDelta;
 
     private void Awake()
@@ -63,34 +66,20 @@ public class PlayerContoroller : MonoBehaviour
         moveSpeed = RUNSPEED;
         state = eState.RUN;
         doubleJumped = false;
+        isJumpPressed = false;
         isAttackPressed = false;
         isAttack = false;
+        isFocusPressed = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        HandleState();
+
         HandleAttackStickForAndroid();
-
-        if (Input.GetButtonDown("Jump") || jumpButton.Hold)
-        {
-            if (isOnGround())
-                rb.velocity = Vector2.up * jumpValocity;
-        }
-
-        if (rb.velocity.y < 0)
-        {
-            rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiflier - 1) * Time.deltaTime;
-        } 
-        else if (rb.velocity.y > 0 && (!Input.GetButton("Jump") && !jumpButton.Hold))
-        {
-            rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiflier - 1) * Time.deltaTime;
-        }
-
-        if (isAttack)
-        {
-            // how can I handle attack direction?
-        }
+        HandleFocusStick();
+        HandleJumpButton();
     }
 
     private bool isOnGround()
@@ -110,10 +99,76 @@ public class PlayerContoroller : MonoBehaviour
 
         return false;
     }
+    private void HandleState()
+    {
+        switch (state)
+        {
+            case eState.RUN:
+                break;
+            case eState.JUMP:
+                if (isOnGround())
+                {
+                    Debug.Log("Land");
+                    doubleJumped = false;
+                    state = eState.RUN;
+                }
+                break;
+            case eState.ATTACK:
+                attackDelta -= 0.1f;
+                if (attackDelta < 0)
+                {
+                    if (isOnGround())
+                        state = eState.RUN;
+                    else
+                        state = eState.JUMP;
+                    moveSpeed = RUNSPEED;
+                    break;
+                }
+                break;
+            case eState.SLIDE:
+                break;
+            case eState.FOCUS:
+                break;
+        }
+    }
 
     private void HandleJumpButton()
     {
+        if (Input.GetButtonDown("Jump") || jumpButton.Hold)
+        {
+            if(!isJumpPressed) //down
+            {
+                isJumpPressed = true;
 
+                if (isOnGround())
+                {
+                    state = eState.JUMP;
+                    rb.velocity = Vector2.up * jumpValocity;
+                }
+                else if (!doubleJumped && state == eState.JUMP)
+                {
+                    doubleJumped = true;
+                    rb.velocity = Vector2.up * jumpValocity;
+                }
+            }
+            
+        }
+        else if (!jumpButton.Hold)
+        {
+            if (isJumpPressed) //up
+            {
+                isJumpPressed = false;
+            }
+        }
+
+        if (rb.velocity.y < 0)
+        {
+            rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiflier - 1) * Time.deltaTime;
+        }
+        else if (rb.velocity.y > 0 && (!Input.GetButton("Jump") && !jumpButton.Hold))
+        {
+            rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiflier - 1) * Time.deltaTime;
+        }
     }
     private void HandleAttackStickForPC()
     {
@@ -134,9 +189,6 @@ public class PlayerContoroller : MonoBehaviour
     }
     private void HandleAttackStickForAndroid()
     {
-        if (attackStick.Up) Debug.Log("attack Up");
-        if (attackStick.Down) Debug.Log("attack Down");
-
         if(attackStick.Hold)
         {
             if (!isAttackPressed) //down
@@ -188,6 +240,17 @@ public class PlayerContoroller : MonoBehaviour
     {
         if (focusStick.Hold)
         {
+            if (!isFocusPressed) // stick down
+            {
+                previousState = state;
+                state = eState.FOCUS;
+                previousSpeed = moveSpeed;
+                moveSpeed = 0.0f;
+                // freezing
+
+                isFocusPressed = true;
+                // catch something
+            }
             reflectDir = focusStick.InputDir;
 
             // set kernel effect parameter
@@ -196,8 +259,19 @@ public class PlayerContoroller : MonoBehaviour
         }
         else
         {
-            Debug.Log(reflectDir);
-            reflectDir = Vector2.zero;
+            if (isFocusPressed)
+            {
+                isFocusPressed = false;
+
+                Debug.Log(reflectDir);
+                //focus action
+                //if caught something -> reflect
+                //else
+                moveSpeed = previousSpeed;
+                state = previousState;
+
+                reflectDir = Vector2.zero;
+            }
         }
     }
 }
