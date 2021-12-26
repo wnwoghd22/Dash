@@ -29,7 +29,7 @@ public class PlayerContoroller : MonoBehaviour
     public float MoveSpeed => moveSpeed;
     public const float RUNSPEED = 0.01f; // default run speed for reset speed becoming run state.
 
-    private eState state;
+    public eState State { get; private set; }
 
     private Vector2 initAttackPos;
     private Vector2 endAttackPos;
@@ -54,6 +54,7 @@ public class PlayerContoroller : MonoBehaviour
     private eState previousState;
     private float previousSpeed;
     private float focusEffectDelta;
+    private Enemy caughtEnemy;
 
     private void Awake()
     {
@@ -64,12 +65,13 @@ public class PlayerContoroller : MonoBehaviour
     void Start()
     {
         moveSpeed = RUNSPEED;
-        state = eState.RUN;
+        State = eState.RUN;
         doubleJumped = false;
         isJumpPressed = false;
         isAttackPressed = false;
         isAttack = false;
         isFocusPressed = false;
+        caughtEnemy = null;
     }
 
     // Update is called once per frame
@@ -101,7 +103,7 @@ public class PlayerContoroller : MonoBehaviour
     }
     private void HandleState()
     {
-        switch (state)
+        switch (State)
         {
             case eState.RUN:
                 break;
@@ -110,7 +112,7 @@ public class PlayerContoroller : MonoBehaviour
                 {
                     Debug.Log("Land");
                     doubleJumped = false;
-                    state = eState.RUN;
+                    State = eState.RUN;
                 }
                 break;
             case eState.ATTACK:
@@ -118,9 +120,9 @@ public class PlayerContoroller : MonoBehaviour
                 if (attackDelta < 0)
                 {
                     if (isOnGround())
-                        state = eState.RUN;
+                        State = eState.RUN;
                     else
-                        state = eState.JUMP;
+                        State = eState.JUMP;
                     moveSpeed = RUNSPEED;
                     break;
                 }
@@ -142,10 +144,10 @@ public class PlayerContoroller : MonoBehaviour
 
                 if (isOnGround())
                 {
-                    state = eState.JUMP;
+                    State = eState.JUMP;
                     rb.velocity = Vector2.up * jumpValocity;
                 }
-                else if (!doubleJumped && state == eState.JUMP)
+                else if (!doubleJumped && State == eState.JUMP)
                 {
                     doubleJumped = true;
                     rb.velocity = Vector2.up * jumpValocity;
@@ -216,7 +218,7 @@ public class PlayerContoroller : MonoBehaviour
         {
             if (isOnGround())
             {
-                state = eState.SLIDE;
+                State = eState.SLIDE;
                 isAttack = true;
                 attackDelta = slideDelay;
                 moveSpeed *= 0.7f;
@@ -226,7 +228,7 @@ public class PlayerContoroller : MonoBehaviour
 
         // attack
         // add cos value to player speed
-        state = eState.ATTACK;
+        State = eState.ATTACK;
         isAttack = true;
         attackDelta = attackDelay;
         moveSpeed = RUNSPEED * v.x * attackValocity;
@@ -241,16 +243,7 @@ public class PlayerContoroller : MonoBehaviour
         if (focusStick.Hold)
         {
             if (!isFocusPressed) // stick down
-            {
-                previousState = state;
-                state = eState.FOCUS;
-                previousSpeed = moveSpeed;
-                moveSpeed = 0.0f;
-                // freezing
-
-                isFocusPressed = true;
-                // catch something
-            }
+                GetFocused();
             reflectDir = focusStick.InputDir;
 
             // set kernel effect parameter
@@ -261,17 +254,76 @@ public class PlayerContoroller : MonoBehaviour
         {
             if (isFocusPressed)
             {
-                isFocusPressed = false;
-
-                Debug.Log(reflectDir);
-                //focus action
-                //if caught something -> reflect
-                //else
-                moveSpeed = previousSpeed;
-                state = previousState;
-
-                reflectDir = Vector2.zero;
+                ExitFocus();
             }
         }
+    }
+    private void GetFocused()
+    {
+        previousState = State;
+        State = eState.FOCUS;
+        previousSpeed = moveSpeed;
+        moveSpeed = 0.0f;
+        // freezing
+        rb.Sleep();
+        Enemy[] enemies = FindObjectsOfType<Enemy>();
+        foreach (Enemy enemy in enemies) enemy.Freeze();
+
+        isFocusPressed = true;
+
+        // catch enemy
+        CatchEnemy();
+    }
+    private void ExitFocus()
+    {
+        isFocusPressed = false;
+        rb.WakeUp();
+        Enemy[] enemies = FindObjectsOfType<Enemy>();
+        foreach (Enemy enemy in enemies) enemy.Unfreeze();
+
+        Debug.Log(reflectDir);
+        //focus action
+
+        //if caught something -> reflect
+        if (caughtEnemy != null)
+        {
+            reflectDir = reflectDir.normalized;
+
+            caughtEnemy.Reflect(-reflectDir);
+            //moveSpeed = RUNSPEED * reflectDir.x * attackValocity;
+            moveSpeed = previousSpeed;
+            rb.velocity += Vector2.up * reflectDir.y * attackValocity;
+        }
+        else
+        {
+            moveSpeed = previousSpeed;
+        }
+        State = previousState;
+
+        reflectDir = Vector2.zero;
+    }
+    /// <summary>
+    /// try to find the nearest enemy object and catch it
+    /// </summary>
+    /// <returns>returns true if player catch enemy</returns>
+    private bool CatchEnemy()
+    {
+        //find closest
+        Collider2D[] enemies = Physics2D.OverlapCircleAll(transform.position, 2f);
+        if (enemies.Length == 0)
+            return false;
+
+        float minDistance = Mathf.Infinity;
+        foreach(Collider2D collider in enemies)
+        {
+            GameObject enemy = collider.gameObject;
+            if (enemy.GetComponent<Enemy>() == null)
+                continue;
+            float distance = Mathf.Abs((enemy.transform.position - transform.position).magnitude);
+            if (distance < minDistance)
+                caughtEnemy = enemy.GetComponent<Enemy>();
+        }
+
+        return caughtEnemy != null;
     }
 }
