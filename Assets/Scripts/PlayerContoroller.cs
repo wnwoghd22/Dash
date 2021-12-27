@@ -48,7 +48,7 @@ public class PlayerContoroller : MonoBehaviour
     [SerializeField] private JoyStick attackStick;
     private bool isAttackPressed; // flag for detect the moment when up
     private bool isAttack;
-    private const float attackDelay = 0.5f;
+    private const float attackDelay = 1.0f;
     private Vector2 attackDir;
     [SerializeField] private JoyStick focusStick;
     private bool isFocusPressed; // flag for detect the moment when up
@@ -66,6 +66,8 @@ public class PlayerContoroller : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Vector2 defaultPos = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width * 0.1f, Screen.height * 0.5f, 0));
+        transform.position = defaultPos;
         moveSpeed = RUNSPEED;
         State = eState.RUN;
         doubleJumped = false;
