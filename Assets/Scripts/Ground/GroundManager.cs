@@ -9,22 +9,15 @@ public class GroundManager : MonoBehaviour
 
     float leftBound;
 
-    private List<GroundElement> elements;
     private Vector3 genPos;
-    private const float generateTerm = 200.0f;
+    [SerializeField]
+    private float generateTerm;
     private float termDelta;
     private int noGroundStack;
 
     // Start is called before the first frame update
     void Start()
     {
-        elements = new List<GroundElement>();
-
-        //temp code
-        elements.AddRange(FindObjectsOfType<GroundElement>());
-
-        //Debug.Log(elements.Count);
-
         Vector3 screenGenPos = new Vector3(Screen.width, 0, 0);
         Vector3 tempGenPos = Camera.main.ScreenToWorldPoint(screenGenPos);
 
@@ -38,25 +31,9 @@ public class GroundManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Debug.Log(elements.Count);
+
     }
 
-    public void Shift(float speed)
-    {
-        for (int i = 0; i < elements.Count; i++)
-        {
-            GroundElement e = elements[i];
-            Vector2 pos = e.transform.position;
-            pos.x -= speed;
-            e.transform.position = pos;
-
-            if (e.transform.position.x < leftBound)
-            {
-                elements.Remove(e);
-                Destroy(e.gameObject);
-            }
-        }
-    }
     public void GenerateGround(float delta)
     {
         termDelta -= delta;
@@ -71,7 +48,7 @@ public class GroundManager : MonoBehaviour
             {
                 noGroundStack = 0;
                 GameObject element = Instantiate(groundPrefab, genPos, Quaternion.identity);
-                elements.Add(element.GetComponent<GroundElement>());
+                element.GetComponent<Ground>().Init();
             }
             else
             {
@@ -80,7 +57,7 @@ public class GroundManager : MonoBehaviour
                 {
                     noGroundStack = 0;
                     GameObject element = Instantiate(groundPrefab, genPos, Quaternion.identity);
-                    elements.Add(element.GetComponent<GroundElement>());
+                    element.GetComponent<Ground>().Init();
                 }
             }
         }

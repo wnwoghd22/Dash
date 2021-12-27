@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D))]
-public class Enemy : MonoBehaviour
+public abstract class Enemy : MonoBehaviour
 {
     protected PlayerContoroller player;
 
@@ -15,6 +15,10 @@ public class Enemy : MonoBehaviour
     protected bool isFreezed;
     protected Vector2 vel;
 
+    protected Enemy()
+    {
+
+    }
 
     protected virtual void Start()
     {
@@ -48,6 +52,11 @@ public class Enemy : MonoBehaviour
         isFreezed = true;
         vel = GetComponent<Rigidbody2D>().velocity;
         GetComponent<Rigidbody2D>().Sleep();
+
+        if (rb == null) Debug.Log("failed");
+        Debug.Log(rb);
+        //vel = rb.velocity;
+        //rb.Sleep();
     }
     public void Unfreeze()
     {

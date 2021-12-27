@@ -39,7 +39,7 @@ public class EnemyStatic : Enemy
         Vector2 playerDir = player.transform.position - transform.position;
 
         GameObject proj = Instantiate(projectile, transform.position, Quaternion.identity);
-        proj.GetComponent<Enemy>().Init();
+        proj.GetComponent<Projectile>().Init();
 
         //rotate
         float angle = Mathf.Atan2(playerDir.y, playerDir.x) * Mathf.Rad2Deg;
