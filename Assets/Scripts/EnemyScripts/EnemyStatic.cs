@@ -22,6 +22,13 @@ public class EnemyStatic : Enemy
     // Update is called once per frame
     protected override void Update()
     {
+        base.Update();
+    }
+
+    protected override void FixedUpdate()
+    {
+        base.FixedUpdate();
+
         if (!isFreezed)
         {
             fireDelta -= 0.1f;
@@ -31,7 +38,6 @@ public class EnemyStatic : Enemy
                 Fire();
             }
         }
-
     }
 
     protected override void Fire()

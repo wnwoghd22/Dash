@@ -38,6 +38,8 @@ public class PlayerContoroller : MonoBehaviour
     [SerializeField]
     [Range(1, 10)]
     private float attackValocity;
+    [SerializeField]
+    private GameObject attackCollider;
 
     private Rigidbody2D rb;
 
@@ -72,6 +74,7 @@ public class PlayerContoroller : MonoBehaviour
         isAttack = false;
         isFocusPressed = false;
         caughtEnemy = null;
+        attackCollider.SetActive(false);
     }
 
     // Update is called once per frame
@@ -119,6 +122,7 @@ public class PlayerContoroller : MonoBehaviour
                 attackDelta -= 0.1f;
                 if (attackDelta < 0)
                 {
+                    attackCollider.SetActive(false);
                     if (isOnGround())
                         State = eState.RUN;
                     else
@@ -235,6 +239,11 @@ public class PlayerContoroller : MonoBehaviour
 
         // add sin value to player object
         rb.velocity += Vector2.up * v.y * attackValocity;
+
+        attackCollider.SetActive(true);
+
+        float angle = Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
+        attackCollider.transform.rotation = Quaternion.AngleAxis(angle - 90, Vector3.forward);
 
     }
 

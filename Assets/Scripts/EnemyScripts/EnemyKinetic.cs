@@ -14,6 +14,12 @@ public class EnemyKinetic : Enemy
     // Update is called once per frame
     protected override void Update()
     {
+        base.Update();
+    }
+    protected override void FixedUpdate()
+    {
+        base.FixedUpdate();
+
         MoveForward();
     }
 
@@ -22,7 +28,7 @@ public class EnemyKinetic : Enemy
         if(!isFreezed)
         {
             Vector2 pos = transform.position;
-            pos.x -= player.MoveSpeed * 2f;
+            pos.x -= player.MoveSpeed * 10f;
             transform.position = pos;
         }
     }

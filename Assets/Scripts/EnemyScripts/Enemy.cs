@@ -26,6 +26,8 @@ public abstract class Enemy : MonoBehaviour
     }
     protected virtual void Update() { }
 
+    protected virtual void FixedUpdate() { }
+
     public virtual void Init()
     {
         player = FindObjectOfType<PlayerContoroller>();
@@ -39,9 +41,32 @@ public abstract class Enemy : MonoBehaviour
     public virtual void Reflect(Vector2 dir)
     {
         isReflected = true;
+        Collider2D col = GetComponent<Collider2D>();
+        if (!col.isTrigger) col.isTrigger = true;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
         GetComponent<Rigidbody2D>().velocity = dir * reflectSpeed;
+    }
+
+    protected void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (isReflected)
+        {
+            if (collision.tag == "Enemy" || collision.tag == "Breakable")
+            {
+                Destroy(collision.gameObject);
+
+                //explode effect
+
+                Destroy(gameObject);
+            }
+            else if(collision.tag == "Ground")
+            {
+                //explode effect
+
+                Destroy(gameObject);
+            }
+        }
     }
 
     /// <summary>
