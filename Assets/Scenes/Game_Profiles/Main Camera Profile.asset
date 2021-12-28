@@ -49,6 +49,7 @@ MonoBehaviour:
   settings:
   - {fileID: 4430212116503140686}
   - {fileID: -6173251053888954555}
+  - {fileID: 7045928434688403637}
 --- !u!114 &4430212116503140686
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -64,13 +65,13 @@ MonoBehaviour:
   active: 0
   enabled:
     overrideState: 1
-    value: 0
+    value: 1
   intensity:
     overrideState: 1
-    value: 147.77
+    value: 3.66
   threshold:
     overrideState: 1
-    value: 0.3
+    value: 1
   softKnee:
     overrideState: 1
     value: 0.5
@@ -87,12 +88,31 @@ MonoBehaviour:
     overrideState: 1
     value: {r: 1, g: 1, b: 1, a: 1}
   fastMode:
-    overrideState: 0
+    overrideState: 1
     value: 0
   dirtTexture:
-    overrideState: 0
+    overrideState: 1
     value: {fileID: 0}
     defaultState: 1
   dirtIntensity:
-    overrideState: 0
+    overrideState: 1
     value: 0
+--- !u!114 &7045928434688403637
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db781a139f12d314dba005c29c2aaa09, type: 3}
+  m_Name: Grayscale
+  m_EditorClassIdentifier: 
+  active: 1
+  enabled:
+    overrideState: 1
+    value: 1
+  blend:
+    overrideState: 0
+    value: 0.5
