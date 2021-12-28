@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 
 public enum eState
 {
@@ -57,6 +58,8 @@ public class PlayerContoroller : MonoBehaviour
     private float previousSpeed;
     private float focusEffectDelta;
     private Enemy caughtEnemy;
+    private PostProcessVolume volume;
+    private EdgeDetect _edge;
 
     private void Awake()
     {
@@ -77,6 +80,9 @@ public class PlayerContoroller : MonoBehaviour
         isFocusPressed = false;
         caughtEnemy = null;
         attackCollider.SetActive(false);
+        volume = FindObjectOfType<PostProcessVolume>();
+
+        volume.profile.TryGetSettings(out _edge);
     }
 
     // Update is called once per frame
@@ -258,8 +264,12 @@ public class PlayerContoroller : MonoBehaviour
             reflectDir = focusStick.InputDir;
 
             // set kernel effect parameter
+
             // float myValue = 1.0f;
             // Shader.SetGlobalFloat("_myValue", myValue);
+
+            if (_edge.intensity.value < 0.7f)
+                _edge.intensity.value += 0.01f;
         }
         else
         {
@@ -291,6 +301,8 @@ public class PlayerContoroller : MonoBehaviour
         rb.WakeUp();
         Enemy[] enemies = FindObjectsOfType<Enemy>();
         foreach (Enemy enemy in enemies) enemy.Unfreeze();
+
+        _edge.intensity.value = 0.0f;
 
         Debug.Log(reflectDir);
         //focus action

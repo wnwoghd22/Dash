@@ -63,13 +63,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 558578e9dc8dd6d4faa2589b7238fa66, type: 3}
   m_Name: EdgeDetect
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   enabled:
     overrideState: 1
     value: 1
   intensity:
-    overrideState: 0
-    value: 0.5
+    overrideState: 1
+    value: 0
 --- !u!114 &4430212116503140686
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -129,7 +129,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db781a139f12d314dba005c29c2aaa09, type: 3}
   m_Name: Grayscale
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   enabled:
     overrideState: 1
     value: 1
