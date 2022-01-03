@@ -61,6 +61,8 @@ public class PlayerContoroller : MonoBehaviour
     private PostProcessVolume volume;
     private EdgeDetect _edge;
 
+    private Animator animator;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -83,6 +85,8 @@ public class PlayerContoroller : MonoBehaviour
         volume = FindObjectOfType<PostProcessVolume>();
 
         volume.profile.TryGetSettings(out _edge);
+
+        animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -122,6 +126,7 @@ public class PlayerContoroller : MonoBehaviour
                 if (isOnGround())
                 {
                     Debug.Log("Land");
+                    animator.SetTrigger("run");
                     doubleJumped = false;
                     State = eState.RUN;
                 }
@@ -158,6 +163,7 @@ public class PlayerContoroller : MonoBehaviour
                 {
                     State = eState.JUMP;
                     rb.velocity = Vector2.up * jumpValocity;
+                    animator.SetTrigger("jump");
                 }
                 else if (!doubleJumped && State == eState.JUMP)
                 {
@@ -231,6 +237,7 @@ public class PlayerContoroller : MonoBehaviour
             if (isOnGround())
             {
                 State = eState.SLIDE;
+                animator.SetTrigger("slide");
                 isAttack = true;
                 attackDelta = slideDelay;
                 moveSpeed *= 0.7f;
@@ -241,6 +248,7 @@ public class PlayerContoroller : MonoBehaviour
         // attack
         // add cos value to player speed
         State = eState.ATTACK;
+        animator.SetTrigger("attack");
         isAttack = true;
         attackDelta = attackDelay;
         moveSpeed = RUNSPEED * v.x * attackValocity;
@@ -283,6 +291,7 @@ public class PlayerContoroller : MonoBehaviour
     {
         previousState = State;
         State = eState.FOCUS;
+        animator.SetBool("focus", true);
         previousSpeed = moveSpeed;
         moveSpeed = 0.0f;
         // freezing
@@ -298,6 +307,8 @@ public class PlayerContoroller : MonoBehaviour
     private void ExitFocus()
     {
         isFocusPressed = false;
+        animator.SetBool("focus", false);
+
         rb.WakeUp();
         Enemy[] enemies = FindObjectsOfType<Enemy>();
         foreach (Enemy enemy in enemies) enemy.Unfreeze();
@@ -310,6 +321,7 @@ public class PlayerContoroller : MonoBehaviour
         //if caught something -> reflect
         if (caughtEnemy != null)
         {
+            animator.SetTrigger("reflect");
             reflectDir = reflectDir.normalized;
 
             caughtEnemy.Reflect(-reflectDir);
@@ -348,5 +360,13 @@ public class PlayerContoroller : MonoBehaviour
         }
 
         return caughtEnemy != null;
+    }
+
+    private bool CheckIsOnGroundforAnimator()
+    {
+        bool result = isOnGround();
+
+        animator.SetBool("isOnGround", result);
+        return result;
     }
 }
