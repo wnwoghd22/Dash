@@ -323,6 +323,7 @@ public class PlayerContoroller : MonoBehaviour
         {
             animator.SetTrigger("reflect");
             reflectDir = reflectDir.normalized;
+            isAttack = false; // give player extra chance to attack in the air
 
             caughtEnemy.Reflect(-reflectDir);
             //moveSpeed = RUNSPEED * reflectDir.x * attackValocity;
@@ -368,5 +369,12 @@ public class PlayerContoroller : MonoBehaviour
 
         animator.SetBool("isOnGround", result);
         return result;
+    }
+    private void ExitReflect()
+    {
+        if (isOnGround())
+            State = eState.RUN;
+        else
+            State = eState.JUMP;
     }
 }

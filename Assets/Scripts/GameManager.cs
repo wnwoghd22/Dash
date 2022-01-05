@@ -24,7 +24,7 @@ public class GameManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        ground.GenerateGround(player.MoveSpeed / defaultSpeed);
+        //ground.GenerateGround(player.MoveSpeed / defaultSpeed);
     }
 
     public void Death()

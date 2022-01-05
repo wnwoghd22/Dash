@@ -2,45 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyStatic : Enemy
+public class Turret : Ground
 {
-
     [SerializeField]
     private GameObject projectile;
 
     private const float fireTerm = 3.0f;
     private float fireDelta;
 
-    // Start is called before the first frame update
-    protected override void Start()
-    {
-        base.Start();
-        fireDelta = fireTerm;
-        GetComponent<Rigidbody2D>().gravityScale = 0.0f;
-    }
-
-    // Update is called once per frame
-    protected override void Update()
-    {
-        base.Update();
-    }
-
-    protected override void FixedUpdate()
-    {
-        base.FixedUpdate();
-
-        if (!isFreezed)
-        {
-            fireDelta -= 0.1f;
-            if (fireDelta < 0)
-            {
-                fireDelta = fireTerm;
-                Fire();
-            }
-        }
-    }
-
-    protected override void Fire()
+    private void Fire()
     {
         Vector2 playerDir = player.transform.position - transform.position;
 
@@ -54,5 +24,27 @@ public class EnemyStatic : Enemy
         //add velocity
         proj.GetComponent<Rigidbody2D>().velocity += playerDir.normalized * 10;
 
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+
+        fireDelta = fireTerm;
+    }
+
+    protected override void FixedUpdate()
+    {
+        base.FixedUpdate();
+
+        if (player.State != eState.FOCUS)
+            fireDelta -= 0.1f;
+
+        if (fireDelta < 0f)
+        {
+            Fire();
+
+            fireDelta = fireTerm;
+        }
     }
 }
