@@ -1,4 +1,7 @@
-#include "UnityCG.cginc"
+#ifndef __EDGE_DETECT__
+#define __EDGE_DETECT__
+
+TEXTURE2D_SAMPLER2D(_MainTex, sampler_MainTex);
 
 float _EdgeDetectIntensity;
 float _KernelOffsetScale;
@@ -13,12 +16,12 @@ float4 Frag(VaryingsDefault i) : SV_Target
 
     float4 col = float4(0.0, 0.0, 0.0, 0.0);
 
-    col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + d.xx) * _EdgeDetectIntensity;
+    col =  SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + d.xx) * _EdgeDetectIntensity;
     col += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + d.xy) * _EdgeDetectIntensity;
     col += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + d.xz) * _EdgeDetectIntensity;
 
     col += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + d.yx) * _EdgeDetectIntensity;
-    col += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + d.yy) * (1 - 9 * _EdgeDetectIntensity);
+    col += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv) * (1 - 9 * _EdgeDetectIntensity);
     col += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + d.yz) * _EdgeDetectIntensity;
 
     col += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + d.zx) * _EdgeDetectIntensity;
@@ -27,3 +30,5 @@ float4 Frag(VaryingsDefault i) : SV_Target
 
     return col;
 }
+
+#endif
