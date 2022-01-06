@@ -70,6 +70,9 @@ MonoBehaviour:
   intensity:
     overrideState: 1
     value: 0
+  offset:
+    overrideState: 1
+    value: 1
 --- !u!114 &4430212116503140686
 MonoBehaviour:
   m_ObjectHideFlags: 3
