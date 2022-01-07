@@ -51,7 +51,6 @@ public class GroundManager : MonoBehaviour
             termDelta = generateTerm;
 
             int r = Random.Range(0, groundPrefabs.Length);
-            Debug.Log(r);
 
             GameObject element = Instantiate(groundPrefabs[r], genPos, Quaternion.identity);
                

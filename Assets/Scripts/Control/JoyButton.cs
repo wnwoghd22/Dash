@@ -12,12 +12,12 @@ public enum eButtonState
 
 public class JoyButton : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
 {
-    public bool Hold { get; private set; }
+    private bool hold;
     public eButtonState State { get; private set; }
 
     void Start()
     {
-        Hold = false;
+        hold = false;
         State = eButtonState.None;
     }
 
@@ -28,13 +28,13 @@ public class JoyButton : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
             case eButtonState.None:
                 break;
             case eButtonState.Down:
-                if (Hold)
+                if (hold)
                     State = eButtonState.Pressed;
                 break;
             case eButtonState.Pressed:
                 break;
             case eButtonState.Up:
-                if (!Hold)
+                if (!hold)
                     State = eButtonState.None;
                 break;
         }
@@ -42,7 +42,7 @@ public class JoyButton : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        Hold = true;
+        hold = true;
 
         if (State == eButtonState.None)
             State = eButtonState.Down;
@@ -50,7 +50,7 @@ public class JoyButton : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        Hold = false;
+        hold = false;
 
         if (State == eButtonState.Pressed)
             State = eButtonState.Up;

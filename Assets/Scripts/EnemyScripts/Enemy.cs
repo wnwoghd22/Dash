@@ -76,11 +76,6 @@ public abstract class Enemy : MonoBehaviour
         isFreezed = true;
         vel = GetComponent<Rigidbody2D>().velocity;
         GetComponent<Rigidbody2D>().Sleep();
-
-        if (rb == null) Debug.Log("failed");
-        Debug.Log(rb);
-        //vel = rb.velocity;
-        //rb.Sleep();
     }
     public void Unfreeze()
     {

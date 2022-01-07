@@ -7,7 +7,7 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     private Image back;
     private Image stick;
 
-    public bool Hold { get; private set; }
+    private bool hold;
     public eButtonState State { get; private set; }
 
     public Vector2 InputDir { get; private set; }
@@ -16,7 +16,7 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     // Start is called before the first frame update
     void Start()
     {
-        Hold = false;
+        hold = false;
         State = eButtonState.None;
 
         back = GetComponent<Image>();
@@ -32,13 +32,13 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             case eButtonState.None:
                 break;
             case eButtonState.Down:
-                if (Hold)
+                if (hold)
                     State = eButtonState.Pressed;
                 break;
             case eButtonState.Pressed:
                 break;
             case eButtonState.Up:
-                if (!Hold)
+                if (!hold)
                     State = eButtonState.None;
                 break;
         }
@@ -48,7 +48,7 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     {
         Vector2 pos = Vector2.zero;
 
-        if (Hold && RectTransformUtility.ScreenPointToLocalPointInRectangle(back.rectTransform, eventData.position, eventData.pressEventCamera, out pos))
+        if (hold && RectTransformUtility.ScreenPointToLocalPointInRectangle(back.rectTransform, eventData.position, eventData.pressEventCamera, out pos))
         {
             pos.x /= backRadius * 2;
             pos.y /= backRadius * 2;
@@ -65,7 +65,7 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     {
         OnDrag(eventData);
 
-        Hold = true;
+        hold = true;
 
         if (State == eButtonState.None)
             State = eButtonState.Down;
@@ -73,7 +73,7 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        Hold = false;
+        hold = false;
 
         if (State == eButtonState.Pressed)
             State = eButtonState.Up;

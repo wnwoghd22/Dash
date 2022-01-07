@@ -45,18 +45,14 @@ public class PlayerContoroller : MonoBehaviour
     private Rigidbody2D rb;
 
     [SerializeField] private JoyButton jumpButton;
-    private bool isJumpPressed;
     [SerializeField] private JoyStick attackStick;
-    private bool isAttackPressed; // flag for detect the moment when up
     private bool isAttack;
     private const float attackDelay = 1.0f;
     private Vector2 attackDir;
     [SerializeField] private JoyStick focusStick;
-    private bool isFocusPressed; // flag for detect the moment when up
     private Vector2 reflectDir;
     private eState previousState;
     private float previousSpeed;
-    private float focusEffectDelta;
     private Enemy caughtEnemy;
     private PostProcessVolume volume;
     private EdgeDetect _edge;
@@ -76,10 +72,7 @@ public class PlayerContoroller : MonoBehaviour
         moveSpeed = RUNSPEED;
         State = eState.RUN;
         doubleJumped = false;
-        isJumpPressed = false;
-        isAttackPressed = false;
         isAttack = false;
-        isFocusPressed = false;
         caughtEnemy = null;
         attackCollider.SetActive(false);
         volume = FindObjectOfType<PostProcessVolume>();
@@ -94,11 +87,9 @@ public class PlayerContoroller : MonoBehaviour
     {
         HandleState();
 
-        HandleAttackStickForAndroid();
+        HandleAttackStick();
         HandleFocusStick();
         HandleJumpButton();
-
-        Debug.Log(jumpButton.State);
     }
 
     private bool isOnGround()
@@ -136,6 +127,7 @@ public class PlayerContoroller : MonoBehaviour
                 attackDelta -= 0.1f;
                 if (attackDelta < 0)
                 {
+                    isAttack = false;
                     attackCollider.SetActive(false);
                     if (isOnGround())
                         State = eState.RUN;
@@ -187,64 +179,53 @@ public class PlayerContoroller : MonoBehaviour
         }
     }
     
-    private void HandleAttackStickForPC()
-    {
-        if (Input.GetMouseButtonDown(0)) //attack phase starts
-        {
-            if (isAttack) return;
-            initAttackPos = Input.mousePosition;
-            isAttackPressed = true;
-        }
-        if (Input.GetMouseButtonUp(0)) //attack phase ends
-        {
-            if (!isAttackPressed) return;
-            endAttackPos = Input.mousePosition;
-            isAttackPressed = false;
-            Vector2 attackDir = endAttackPos - initAttackPos;
-            Attack(attackDir);
-        }
-    }
-    private void HandleAttackStickForAndroid()
-    {
-        if(attackStick.Hold)
-        {
-            if (!isAttackPressed) //down
-                isAttackPressed = true;
-            attackDir = attackStick.InputDir;
-        }
-        else
-        {
-            if (isAttackPressed) //up
-            {
-                isAttackPressed = false;
-                Debug.Log(attackDir);
-
-                Attack(attackDir);
-                attackDir = Vector2.zero;
-            }
-        }
-    }
     private void HandleAttackStick()
     {
+        switch (attackStick.State)
+        {
+            case eButtonState.None:
+                break;
+            case eButtonState.Down:
+                attackDir = attackStick.InputDir;
+                break;
+            case eButtonState.Pressed:
+                attackDir = attackStick.InputDir;
 
+                // check if slide
+                if (attackDir.x < 0)
+                {
+                    if (isOnGround() && State != eState.SLIDE)
+                    {
+                        State = eState.SLIDE;
+                        animator.SetBool("slide", true);
+                    }
+                }
+                else
+                {
+                    if (State == eState.SLIDE)
+                    {
+                        animator.SetBool("slide", false);
+
+
+                        if (isOnGround())
+                            State = eState.RUN;
+                        else
+                            State = eState.JUMP;
+                    }
+                }
+                break;
+            case eButtonState.Up:
+                animator.SetBool("slide", false);
+
+                if (attackDir.x > 0)
+                    Attack(attackDir);
+                attackDir = Vector2.zero;
+                break;
+        }
     }
     private void Attack(Vector2 v)
     {
         v = v.normalized;
-
-        // check if slide
-        if (v.x < 0)
-        {
-            if (isOnGround())
-            {
-                State = eState.SLIDE;
-                animator.SetTrigger("slide");
-                isAttack = true;
-                attackDelta = slideDelay;
-                moveSpeed *= 0.7f;
-            }
-            return;
-        }
 
         // attack
         // add cos value to player speed
@@ -263,31 +244,37 @@ public class PlayerContoroller : MonoBehaviour
         attackCollider.transform.rotation = Quaternion.AngleAxis(angle - 90, Vector3.forward);
 
     }
+    /// <summary>
+    /// recall at the end of animation "attack"
+    /// </summary>
+    public void ExitAttack()
+    {
+
+    }
 
     private void HandleFocusStick()
     {
-        if (focusStick.Hold)
+        switch (focusStick.State)
         {
-            if (!isFocusPressed) // stick down
+            case eButtonState.None:
+                if (_edge.intensity.value > 0.0f)
+                    _edge.intensity.value -= 0.03f;
+                break;
+            case eButtonState.Down:
                 GetFocused();
-            reflectDir = focusStick.InputDir;
+                break;
+            case eButtonState.Pressed:
+                reflectDir = focusStick.InputDir;
 
-            // set kernel effect parameter
-
-            // float myValue = 1.0f;
-            // Shader.SetGlobalFloat("_myValue", myValue);
-
-            if (_edge.intensity.value < 0.7f)
-                _edge.intensity.value += 0.01f;
-        }
-        else
-        {
-            if (isFocusPressed)
-            {
+                if (_edge.intensity.value < 0.7f)
+                    _edge.intensity.value += 0.01f;
+                break;
+            case eButtonState.Up:
                 ExitFocus();
-            }
+                break;
         }
     }
+
     private void GetFocused()
     {
         previousState = State;
@@ -300,14 +287,11 @@ public class PlayerContoroller : MonoBehaviour
         Enemy[] enemies = FindObjectsOfType<Enemy>();
         foreach (Enemy enemy in enemies) enemy.Freeze();
 
-        isFocusPressed = true;
-
         // catch enemy
         CatchEnemy();
     }
     private void ExitFocus()
     {
-        isFocusPressed = false;
         animator.SetBool("focus", false);
 
         rb.WakeUp();
@@ -316,7 +300,6 @@ public class PlayerContoroller : MonoBehaviour
 
         _edge.intensity.value = 0.0f;
 
-        Debug.Log(reflectDir);
         //focus action
 
         //if caught something -> reflect
