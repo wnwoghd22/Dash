@@ -6,19 +6,19 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
 {
     private Image back;
     private Image stick;
-    public bool Down { get; private set; }
+
     public bool Hold { get; private set; }
-    public bool Up { get; private set; }
-    private bool isPressed;
+    public eButtonState State { get; private set; }
+
     public Vector2 InputDir { get; private set; }
     float backRadius;
 
     // Start is called before the first frame update
     void Start()
     {
-        Down = false;
         Hold = false;
-        Up = false;
+        State = eButtonState.None;
+
         back = GetComponent<Image>();
         stick = transform.GetChild(0).GetComponent<Image>();
         backRadius = back.rectTransform.sizeDelta.x / 2;
@@ -27,9 +27,21 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     // Update is called once per frame
     void Update()
     {
-        // low fidelity
-        if (!Up && (Hold && Down)) Down = false;
-        if (!Down && (!Hold && Up)) Up = false;
+        switch (State)
+        {
+            case eButtonState.None:
+                break;
+            case eButtonState.Down:
+                if (Hold)
+                    State = eButtonState.Pressed;
+                break;
+            case eButtonState.Pressed:
+                break;
+            case eButtonState.Up:
+                if (!Hold)
+                    State = eButtonState.None;
+                break;
+        }
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -51,27 +63,22 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        //Vector2 pos;
-        // I want to set Hold true if and only if player touches stick UI
-        //if (RectTransformUtility.ScreenPointToLocalPointInRectangle(stick.rectTransform, eventData.position, eventData.pressEventCamera, out pos))
-        //{
-        //    Hold = true;
-        //    Down = true;
-        //    Debug.Log("touch stick");
-        //}
-        //if (Hold)
-        //    OnDrag(eventData);
-        Hold = true;
-        Down = true;
         OnDrag(eventData);
 
+        Hold = true;
+
+        if (State == eButtonState.None)
+            State = eButtonState.Down;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         Hold = false;
+
+        if (State == eButtonState.Pressed)
+            State = eButtonState.Up;
+
         InputDir = Vector2.zero;
         stick.rectTransform.anchoredPosition = Vector2.zero;
-        Up = true;
     }
 }

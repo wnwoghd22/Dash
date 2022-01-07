@@ -7,13 +7,11 @@ public class GameManager : MonoBehaviour
 {
     private PlayerContoroller player;
     private readonly float defaultSpeed = PlayerContoroller.RUNSPEED;
-    private GroundManager ground;
 
     // Start is called before the first frame update
     void Start()
     {
         player = FindObjectOfType<PlayerContoroller>();
-        ground = FindObjectOfType<GroundManager>();
     }
 
     // Update is called once per frame
@@ -24,7 +22,7 @@ public class GameManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        //ground.GenerateGround(player.MoveSpeed / defaultSpeed);
+        
     }
 
     public void Death()

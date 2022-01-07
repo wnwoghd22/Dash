@@ -71,7 +71,7 @@ public class PlayerContoroller : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Vector2 defaultPos = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width * 0.1f, Screen.height * 0.5f, 0));
+        Vector2 defaultPos = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width * 0.2f, Screen.height * 0.5f, 0));
         transform.position = defaultPos;
         moveSpeed = RUNSPEED;
         State = eState.RUN;
@@ -97,6 +97,8 @@ public class PlayerContoroller : MonoBehaviour
         HandleAttackStickForAndroid();
         HandleFocusStick();
         HandleJumpButton();
+
+        Debug.Log(jumpButton.State);
     }
 
     private bool isOnGround()
@@ -125,7 +127,6 @@ public class PlayerContoroller : MonoBehaviour
             case eState.JUMP:
                 if (isOnGround())
                 {
-                    Debug.Log("Land");
                     animator.SetTrigger("run");
                     doubleJumped = false;
                     State = eState.RUN;
@@ -153,12 +154,11 @@ public class PlayerContoroller : MonoBehaviour
 
     private void HandleJumpButton()
     {
-        if (Input.GetButtonDown("Jump") || jumpButton.Hold)
+        switch (jumpButton.State)
         {
-            if(!isJumpPressed) //down
-            {
-                isJumpPressed = true;
-
+            case eButtonState.None:
+                break;
+            case eButtonState.Down:
                 if (isOnGround())
                 {
                     State = eState.JUMP;
@@ -170,26 +170,23 @@ public class PlayerContoroller : MonoBehaviour
                     doubleJumped = true;
                     rb.velocity = Vector2.up * jumpValocity;
                 }
-            }
-            
-        }
-        else if (!jumpButton.Hold)
-        {
-            if (isJumpPressed) //up
-            {
-                isJumpPressed = false;
-            }
+                break;
+            case eButtonState.Pressed:
+                break;
+            case eButtonState.Up:
+                break;
         }
 
         if (rb.velocity.y < 0)
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiflier - 1) * Time.deltaTime;
         }
-        else if (rb.velocity.y > 0 && (!Input.GetButton("Jump") && !jumpButton.Hold))
+        else if (rb.velocity.y > 0 && jumpButton.State != eButtonState.Pressed)
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiflier - 1) * Time.deltaTime;
         }
     }
+    
     private void HandleAttackStickForPC()
     {
         if (Input.GetMouseButtonDown(0)) //attack phase starts
@@ -226,6 +223,10 @@ public class PlayerContoroller : MonoBehaviour
                 attackDir = Vector2.zero;
             }
         }
+    }
+    private void HandleAttackStick()
+    {
+
     }
     private void Attack(Vector2 v)
     {

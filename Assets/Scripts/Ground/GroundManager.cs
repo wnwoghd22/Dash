@@ -5,15 +5,18 @@ using UnityEngine;
 public class GroundManager : MonoBehaviour
 {
     [SerializeField]
-    private GameObject groundPrefab;
+    private GameObject[] groundPrefabs;
 
     float leftBound;
 
     private Vector3 genPos;
     [SerializeField]
-    private float generateTerm;
+    private float generateTerm = 14.5f;
     private float termDelta;
-    private int noGroundStack;
+
+    private PlayerContoroller player;
+
+    private float shiftSpeed = 5;
 
     // Start is called before the first frame update
     void Start()
@@ -22,16 +25,22 @@ public class GroundManager : MonoBehaviour
         Vector3 tempGenPos = Camera.main.ScreenToWorldPoint(screenGenPos);
 
         leftBound = Camera.main.ScreenToWorldPoint(new Vector3(0, 0, 0)).x;
-        genPos = new Vector3(tempGenPos.x + 3f, tempGenPos.y, 0);
+        genPos = new Vector3(tempGenPos.x + 15f, tempGenPos.y, 0);
 
-        termDelta = generateTerm;
-        noGroundStack = 0;
+        termDelta = 0;
+
+        player = GameObject.Find("Player").GetComponent<PlayerContoroller>();
     }
 
     // Update is called once per frame
     void Update()
     {
 
+    }
+
+    private void FixedUpdate()
+    {
+        GenerateGround(player.MoveSpeed * shiftSpeed);
     }
 
     public void GenerateGround(float delta)
@@ -41,25 +50,11 @@ public class GroundManager : MonoBehaviour
         {
             termDelta = generateTerm;
 
-            int r = Random.Range(0, 5); // 0 ~ 4
-            //Debug.Log(r);
+            int r = Random.Range(0, groundPrefabs.Length);
+            Debug.Log(r);
 
-            if (r < 3)
-            {
-                noGroundStack = 0;
-                GameObject element = Instantiate(groundPrefab, genPos, Quaternion.identity);
-                element.GetComponent<Ground>().Init();
-            }
-            else
-            {
-                ++noGroundStack;
-                if(noGroundStack > 2)
-                {
-                    noGroundStack = 0;
-                    GameObject element = Instantiate(groundPrefab, genPos, Quaternion.identity);
-                    element.GetComponent<Ground>().Init();
-                }
-            }
+            GameObject element = Instantiate(groundPrefabs[r], genPos, Quaternion.identity);
+               
         }
     }
 }

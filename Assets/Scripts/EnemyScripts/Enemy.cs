@@ -32,8 +32,7 @@ public abstract class Enemy : MonoBehaviour
     {
         player = FindObjectOfType<PlayerContoroller>();
         rb = GetComponent<Rigidbody2D>();
-        if (rb == null) Debug.Log("failed");
-        Debug.Log(rb);
+        
         isReflected = false;
         vel = Vector2.zero;
     }
