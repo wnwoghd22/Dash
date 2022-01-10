@@ -43,6 +43,7 @@ public class PlayerContoroller : MonoBehaviour
     private GameObject attackCollider;
 
     private Rigidbody2D rb;
+    private BoxCollider2D col;
 
     [SerializeField] private JoyButton jumpButton;
     [SerializeField] private JoyStick attackStick;
@@ -62,6 +63,7 @@ public class PlayerContoroller : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        col = GetComponent<BoxCollider2D>();
     }
 
     // Start is called before the first frame update
@@ -91,25 +93,39 @@ public class PlayerContoroller : MonoBehaviour
         HandleFocusStick();
         HandleJumpButton();
 
-        Debug.Log(focusStick.State + ", " + State);
+        Debug.Log(focusStick.State + ", " + State + ", " + rb.velocity + ", " + isOnGround());
     }
 
     private bool isOnGround()
     {
-        if (rb.velocity.y <= 0)
-        {
-            foreach (Transform point in groundPoints)
-            {
-                Collider2D[] collider2s = Physics2D.OverlapCircleAll(point.position, overlapRadius);
-                for (int i = 0; i < collider2s.Length; ++i)
-                {
-                    if (collider2s[i].gameObject != gameObject)
-                        return true;
-                }
-            }
-        }
+        //if (rb.velocity.y <= 0)
+        //{
+        //    foreach (Transform point in groundPoints)
+        //    {
+        //        Collider2D[] collider2s = Physics2D.OverlapCircleAll(point.position, overlapRadius);
+        //        for (int i = 0; i < collider2s.Length; ++i)
+        //        {
+        //            //if (collider2s[i].gameObject != gameObject)
+        //            if (collider2s[i].gameObject != gameObject && (collider2s[i].gameObject.tag == "Ground" || collider2s[i].gameObject.tag == "Breakable"))
+        //            return true;
+        //        }
+        //    }
+        //}
+        //return false;
 
-        return false;
+        //Physics2D.BoxCast(col.bounds.center, col.size);
+
+        RaycastHit2D raycastHit2D = Physics2D.BoxCast(
+            (Vector2)col.bounds.min - 0.01f * Vector2.up,
+            col.bounds.size,
+            0f, Vector2.down, .05f);
+
+        Debug.DrawRay(col.bounds.min,
+            Vector2.down, Color.green);
+        Debug.Log(col.bounds.min, raycastHit2D.collider.gameObject);
+
+        return raycastHit2D.collider != null;
+
     }
     private void HandleState()
     {
@@ -267,6 +283,8 @@ public class PlayerContoroller : MonoBehaviour
                 break;
             case eButtonState.Pressed:
                 reflectDir = focusStick.InputDir;
+                if (reflectDir.magnitude < 0.01f)
+                    reflectDir = -Vector2.one;
 
                 if (_edge.intensity.value < 0.7f)
                     _edge.intensity.value += 0.01f;
