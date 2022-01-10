@@ -6,7 +6,10 @@ using UnityEngine.Rendering.PostProcessing;
 public enum eState
 {
     RUN,
+    TAKEOFF, // first frame of jump
     JUMP,
+    FALL,
+    LAND, // about to ground
     ATTACK,
     SLIDE,
     FOCUS, // if focus button pressed
@@ -22,19 +25,12 @@ public class PlayerContoroller : MonoBehaviour
     private float fallMultiflier = 2.5f;
     private float lowJumpMultiflier = 2f;
 
-    [SerializeField]
-    private Transform[] groundPoints;
-    private float overlapRadius = 0.1f;
-
     private float moveSpeed;
     public float MoveSpeed => moveSpeed;
     public const float RUNSPEED = 0.01f; // default run speed for reset speed becoming run state.
 
     public eState State { get; private set; }
 
-    private Vector2 initAttackPos;
-    private Vector2 endAttackPos;
-    private const float slideDelay = 0.2f;
     private float attackDelta;
     [SerializeField]
     [Range(1, 10)]
@@ -43,14 +39,22 @@ public class PlayerContoroller : MonoBehaviour
     private GameObject attackCollider;
 
     private Rigidbody2D rb;
+    private BoxCollider2D col;
+    [SerializeField]
+    private ContactFilter2D filter;
 
     [SerializeField] private JoyButton jumpButton;
+    public bool isOnGround => rb.IsTouching(filter);
+
     [SerializeField] private JoyStick attackStick;
     private bool isAttack;
     private const float attackDelay = 1.0f;
     private Vector2 attackDir;
+
     [SerializeField] private JoyStick focusStick;
     private Vector2 reflectDir;
+    [SerializeField]
+    private GameObject reflectDirArrow;
     private eState previousState;
     private float previousSpeed;
     private Enemy caughtEnemy;
@@ -62,6 +66,7 @@ public class PlayerContoroller : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        col = GetComponent<BoxCollider2D>();
     }
 
     // Start is called before the first frame update
@@ -75,6 +80,7 @@ public class PlayerContoroller : MonoBehaviour
         isAttack = false;
         caughtEnemy = null;
         attackCollider.SetActive(false);
+        reflectDirArrow.SetActive(false);
         volume = FindObjectOfType<PostProcessVolume>();
 
         volume.profile.TryGetSettings(out _edge);
@@ -90,38 +96,35 @@ public class PlayerContoroller : MonoBehaviour
         HandleAttackStick();
         HandleFocusStick();
         HandleJumpButton();
+
+        Debug.Log(State + " " + isOnGround);
     }
 
-    private bool isOnGround()
-    {
-        if (rb.velocity.y <= 0)
-        {
-            foreach (Transform point in groundPoints)
-            {
-                Collider2D[] collider2s = Physics2D.OverlapCircleAll(point.position, overlapRadius);
-                for (int i = 0; i < collider2s.Length; ++i)
-                {
-                    if (collider2s[i].gameObject != gameObject)
-                        return true;
-                }
-            }
-        }
-
-        return false;
-    }
     private void HandleState()
     {
         switch (State)
         {
             case eState.RUN:
                 break;
+            case eState.TAKEOFF:
+                //jump effect
+                State = eState.JUMP;
+                break;
             case eState.JUMP:
-                if (isOnGround())
-                {
-                    animator.SetTrigger("run");
-                    doubleJumped = false;
-                    State = eState.RUN;
-                }
+                if (rb.velocity.y < 0)
+                    State = eState.FALL;
+                break;
+            case eState.FALL:
+                if (isOnGround)
+                    State = eState.LAND;
+                
+                rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiflier - 1) * Time.deltaTime;
+                break;
+            case eState.LAND:
+                //land effect
+                animator.SetTrigger("run");
+                doubleJumped = false;
+                State = eState.RUN;
                 break;
             case eState.ATTACK:
                 attackDelta -= 0.1f;
@@ -129,7 +132,7 @@ public class PlayerContoroller : MonoBehaviour
                 {
                     isAttack = false;
                     attackCollider.SetActive(false);
-                    if (isOnGround())
+                    if (isOnGround)
                         State = eState.RUN;
                     else
                         State = eState.JUMP;
@@ -141,6 +144,7 @@ public class PlayerContoroller : MonoBehaviour
                 break;
             case eState.FOCUS:
                 break;
+            
         }
     }
 
@@ -149,18 +153,22 @@ public class PlayerContoroller : MonoBehaviour
         switch (jumpButton.State)
         {
             case eButtonState.None:
+                if (rb.velocity.y > 0)
+                    rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiflier - 1) * Time.deltaTime;
                 break;
             case eButtonState.Down:
-                if (isOnGround())
+                if (isOnGround)
                 {
-                    State = eState.JUMP;
+                    State = eState.TAKEOFF;
                     rb.velocity = Vector2.up * jumpValocity;
                     animator.SetTrigger("jump");
                 }
-                else if (!doubleJumped && State == eState.JUMP)
+                else if (!doubleJumped)
                 {
                     doubleJumped = true;
+                    State = eState.TAKEOFF;
                     rb.velocity = Vector2.up * jumpValocity;
+                    //animator.SetTrigger("jump");
                 }
                 break;
             case eButtonState.Pressed:
@@ -172,10 +180,6 @@ public class PlayerContoroller : MonoBehaviour
         if (rb.velocity.y < 0)
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiflier - 1) * Time.deltaTime;
-        }
-        else if (rb.velocity.y > 0 && jumpButton.State != eButtonState.Pressed)
-        {
-            rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiflier - 1) * Time.deltaTime;
         }
     }
     
@@ -194,7 +198,7 @@ public class PlayerContoroller : MonoBehaviour
                 // check if slide
                 if (attackDir.x < 0)
                 {
-                    if (isOnGround() && State != eState.SLIDE)
+                    if (isOnGround && State != eState.SLIDE)
                     {
                         State = eState.SLIDE;
                         animator.SetBool("slide", true);
@@ -207,7 +211,7 @@ public class PlayerContoroller : MonoBehaviour
                         animator.SetBool("slide", false);
 
 
-                        if (isOnGround())
+                        if (isOnGround)
                             State = eState.RUN;
                         else
                             State = eState.JUMP;
@@ -265,6 +269,15 @@ public class PlayerContoroller : MonoBehaviour
                 break;
             case eButtonState.Pressed:
                 reflectDir = focusStick.InputDir;
+                if (reflectDir.magnitude < 0.01f)
+                    reflectDir = -Vector2.one;
+
+                if (caughtEnemy)
+                {
+                    float angle = Mathf.Atan2(reflectDir.y, reflectDir.x) * Mathf.Rad2Deg;
+                    reflectDirArrow.transform.rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
+
+                }
 
                 if (_edge.intensity.value < 0.7f)
                     _edge.intensity.value += 0.01f;
@@ -288,7 +301,11 @@ public class PlayerContoroller : MonoBehaviour
         foreach (Enemy enemy in enemies) enemy.Freeze();
 
         // catch enemy
-        CatchEnemy();
+        if (CatchEnemy())
+        {
+            reflectDirArrow.SetActive(true);
+            reflectDirArrow.transform.position = caughtEnemy.transform.position;
+        }
     }
     private void ExitFocus()
     {
@@ -305,6 +322,8 @@ public class PlayerContoroller : MonoBehaviour
         //if caught something -> reflect
         if (caughtEnemy != null)
         {
+            reflectDirArrow.SetActive(false);
+
             animator.SetTrigger("reflect");
             reflectDir = reflectDir.normalized;
             isAttack = false; // give player extra chance to attack in the air
@@ -349,16 +368,18 @@ public class PlayerContoroller : MonoBehaviour
 
     private bool CheckIsOnGroundforAnimator()
     {
-        bool result = isOnGround();
+        bool result = isOnGround;
 
         animator.SetBool("isOnGround", result);
         return result;
     }
     private void ExitReflect()
     {
-        if (isOnGround())
-            State = eState.RUN;
-        else
-            State = eState.JUMP;
+        if (State == eState.FOCUS)
+            return;
+
+        Debug.Log("exit call");
+
+        State = isOnGround ? eState.RUN : eState.JUMP;
     }
 }
