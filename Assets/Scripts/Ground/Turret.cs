@@ -38,13 +38,16 @@ public class Turret : Ground
         base.FixedUpdate();
 
         if (player.State != eState.FOCUS)
+        {
             fireDelta -= 0.1f;
 
-        if (fireDelta < 0f)
-        {
-            Fire();
+            if (fireDelta < 0f)
+            {
+                Fire();
 
-            fireDelta = fireTerm;
+                fireDelta = fireTerm;
+            }
         }
+            
     }
 }

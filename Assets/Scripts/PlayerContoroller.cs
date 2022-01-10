@@ -90,6 +90,8 @@ public class PlayerContoroller : MonoBehaviour
         HandleAttackStick();
         HandleFocusStick();
         HandleJumpButton();
+
+        Debug.Log(focusStick.State + ", " + State);
     }
 
     private bool isOnGround()
@@ -356,6 +358,11 @@ public class PlayerContoroller : MonoBehaviour
     }
     private void ExitReflect()
     {
+        if (State == eState.FOCUS)
+            return;
+
+        Debug.Log("exit call");
+
         if (isOnGround())
             State = eState.RUN;
         else

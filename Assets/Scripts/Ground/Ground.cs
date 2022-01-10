@@ -28,6 +28,7 @@ public abstract class Ground : MonoBehaviour
 
     public virtual void Init()
     {
+        Debug.Log("init" + gameObject);
         player = FindObjectOfType<PlayerContoroller>();
         leftBound = Camera.main.ScreenToWorldPoint(new Vector3(0, 0, 0)).x;
     }
