@@ -49,6 +49,8 @@ public class PlayerContoroller : MonoBehaviour
     private BoxCollider2D col;
     [SerializeField]
     private LayerMask jumpable;
+    [SerializeField]
+    private ContactFilter2D filter;
 
     [SerializeField] private JoyButton jumpButton;
     [SerializeField] private JoyStick attackStick;
@@ -101,7 +103,8 @@ public class PlayerContoroller : MonoBehaviour
         Debug.Log(State + " " + isOnGround);
     }
 
-    public bool isOnGround => Physics2D.BoxCast(col.bounds.center, col.bounds.size, 0f, Vector2.down, .1f, jumpable);
+    //public bool isOnGround => Physics2D.BoxCast(col.bounds.center, col.bounds.size, 0f, Vector2.down, .1f, jumpable);
+    public bool isOnGround => rb.IsTouching(filter);
 
     private void HandleState()
     {
