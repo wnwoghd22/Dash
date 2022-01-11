@@ -44,6 +44,8 @@ public class PlayerContoroller : MonoBehaviour
 
     private Rigidbody2D rb;
     private BoxCollider2D col;
+    [SerializeField]
+    private LayerMask jumpable;
 
     [SerializeField] private JoyButton jumpButton;
     [SerializeField] private JoyStick attackStick;
@@ -93,40 +95,11 @@ public class PlayerContoroller : MonoBehaviour
         HandleFocusStick();
         HandleJumpButton();
 
-        Debug.Log(focusStick.State + ", " + State + ", " + rb.velocity + ", " + isOnGround());
+        Debug.Log(isOnGround);
     }
 
-    private bool isOnGround()
-    {
-        //if (rb.velocity.y <= 0)
-        //{
-        //    foreach (Transform point in groundPoints)
-        //    {
-        //        Collider2D[] collider2s = Physics2D.OverlapCircleAll(point.position, overlapRadius);
-        //        for (int i = 0; i < collider2s.Length; ++i)
-        //        {
-        //            //if (collider2s[i].gameObject != gameObject)
-        //            if (collider2s[i].gameObject != gameObject && (collider2s[i].gameObject.tag == "Ground" || collider2s[i].gameObject.tag == "Breakable"))
-        //            return true;
-        //        }
-        //    }
-        //}
-        //return false;
+    public bool isOnGround => Physics2D.BoxCast(col.bounds.center, col.bounds.size, 0f, Vector2.down, .1f, jumpable);
 
-        //Physics2D.BoxCast(col.bounds.center, col.size);
-
-        RaycastHit2D raycastHit2D = Physics2D.BoxCast(
-            (Vector2)col.bounds.min - 0.01f * Vector2.up,
-            col.bounds.size,
-            0f, Vector2.down, .05f);
-
-        Debug.DrawRay(col.bounds.min,
-            Vector2.down, Color.green);
-        Debug.Log(col.bounds.min, raycastHit2D.collider.gameObject);
-
-        return raycastHit2D.collider != null;
-
-    }
     private void HandleState()
     {
         switch (State)
@@ -134,7 +107,7 @@ public class PlayerContoroller : MonoBehaviour
             case eState.RUN:
                 break;
             case eState.JUMP:
-                if (isOnGround())
+                if (isOnGround)
                 {
                     animator.SetTrigger("run");
                     doubleJumped = false;
@@ -147,7 +120,7 @@ public class PlayerContoroller : MonoBehaviour
                 {
                     isAttack = false;
                     attackCollider.SetActive(false);
-                    if (isOnGround())
+                    if (isOnGround)
                         State = eState.RUN;
                     else
                         State = eState.JUMP;
@@ -169,7 +142,7 @@ public class PlayerContoroller : MonoBehaviour
             case eButtonState.None:
                 break;
             case eButtonState.Down:
-                if (isOnGround())
+                if (isOnGround)
                 {
                     State = eState.JUMP;
                     rb.velocity = Vector2.up * jumpValocity;
@@ -212,7 +185,7 @@ public class PlayerContoroller : MonoBehaviour
                 // check if slide
                 if (attackDir.x < 0)
                 {
-                    if (isOnGround() && State != eState.SLIDE)
+                    if (isOnGround && State != eState.SLIDE)
                     {
                         State = eState.SLIDE;
                         animator.SetBool("slide", true);
@@ -225,7 +198,7 @@ public class PlayerContoroller : MonoBehaviour
                         animator.SetBool("slide", false);
 
 
-                        if (isOnGround())
+                        if (isOnGround)
                             State = eState.RUN;
                         else
                             State = eState.JUMP;
@@ -369,7 +342,7 @@ public class PlayerContoroller : MonoBehaviour
 
     private bool CheckIsOnGroundforAnimator()
     {
-        bool result = isOnGround();
+        bool result = isOnGround;
 
         animator.SetBool("isOnGround", result);
         return result;
@@ -381,9 +354,6 @@ public class PlayerContoroller : MonoBehaviour
 
         Debug.Log("exit call");
 
-        if (isOnGround())
-            State = eState.RUN;
-        else
-            State = eState.JUMP;
+        State = isOnGround ? eState.RUN : eState.JUMP;
     }
 }

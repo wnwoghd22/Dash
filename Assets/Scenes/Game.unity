@@ -678,6 +678,9 @@ MonoBehaviour:
   - {fileID: 129917985}
   attackValocity: 6
   attackCollider: {fileID: 695788613}
+  jumpable:
+    serializedVersion: 2
+    m_Bits: 512
   jumpButton: {fileID: 1826073001}
   attackStick: {fileID: 2133168805}
   focusStick: {fileID: 622271567}
