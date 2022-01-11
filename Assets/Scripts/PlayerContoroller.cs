@@ -6,7 +6,10 @@ using UnityEngine.Rendering.PostProcessing;
 public enum eState
 {
     RUN,
+    TAKEOFF, // first frame of jump
     JUMP,
+    FALL,
+    LAND, // about to ground
     ATTACK,
     SLIDE,
     FOCUS, // if focus button pressed
@@ -95,7 +98,7 @@ public class PlayerContoroller : MonoBehaviour
         HandleFocusStick();
         HandleJumpButton();
 
-        Debug.Log(isOnGround);
+        Debug.Log(State + " " + isOnGround);
     }
 
     public bool isOnGround => Physics2D.BoxCast(col.bounds.center, col.bounds.size, 0f, Vector2.down, .1f, jumpable);
@@ -106,13 +109,25 @@ public class PlayerContoroller : MonoBehaviour
         {
             case eState.RUN:
                 break;
+            case eState.TAKEOFF:
+                //jump effect
+                State = eState.JUMP;
+                break;
             case eState.JUMP:
+                if (rb.velocity.y < 0)
+                    State = eState.FALL;
+                break;
+            case eState.FALL:
                 if (isOnGround)
-                {
-                    animator.SetTrigger("run");
-                    doubleJumped = false;
-                    State = eState.RUN;
-                }
+                    State = eState.LAND;
+                
+                rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiflier - 1) * Time.deltaTime;
+                break;
+            case eState.LAND:
+                //land effect
+                animator.SetTrigger("run");
+                doubleJumped = false;
+                State = eState.RUN;
                 break;
             case eState.ATTACK:
                 attackDelta -= 0.1f;
@@ -132,6 +147,7 @@ public class PlayerContoroller : MonoBehaviour
                 break;
             case eState.FOCUS:
                 break;
+            
         }
     }
 
@@ -140,11 +156,13 @@ public class PlayerContoroller : MonoBehaviour
         switch (jumpButton.State)
         {
             case eButtonState.None:
+                if (rb.velocity.y > 0)
+                    rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiflier - 1) * Time.deltaTime;
                 break;
             case eButtonState.Down:
                 if (isOnGround)
                 {
-                    State = eState.JUMP;
+                    State = eState.TAKEOFF;
                     rb.velocity = Vector2.up * jumpValocity;
                     animator.SetTrigger("jump");
                 }
@@ -152,6 +170,7 @@ public class PlayerContoroller : MonoBehaviour
                 {
                     doubleJumped = true;
                     rb.velocity = Vector2.up * jumpValocity;
+                    //animator.SetTrigger("jump");
                 }
                 break;
             case eButtonState.Pressed:
@@ -163,10 +182,6 @@ public class PlayerContoroller : MonoBehaviour
         if (rb.velocity.y < 0)
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiflier - 1) * Time.deltaTime;
-        }
-        else if (rb.velocity.y > 0 && jumpButton.State != eButtonState.Pressed)
-        {
-            rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiflier - 1) * Time.deltaTime;
         }
     }
     
