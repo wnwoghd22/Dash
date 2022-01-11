@@ -25,19 +25,12 @@ public class PlayerContoroller : MonoBehaviour
     private float fallMultiflier = 2.5f;
     private float lowJumpMultiflier = 2f;
 
-    [SerializeField]
-    private Transform[] groundPoints;
-    private float overlapRadius = 0.1f;
-
     private float moveSpeed;
     public float MoveSpeed => moveSpeed;
     public const float RUNSPEED = 0.01f; // default run speed for reset speed becoming run state.
 
     public eState State { get; private set; }
 
-    private Vector2 initAttackPos;
-    private Vector2 endAttackPos;
-    private const float slideDelay = 0.2f;
     private float attackDelta;
     [SerializeField]
     [Range(1, 10)]
@@ -48,17 +41,20 @@ public class PlayerContoroller : MonoBehaviour
     private Rigidbody2D rb;
     private BoxCollider2D col;
     [SerializeField]
-    private LayerMask jumpable;
-    [SerializeField]
     private ContactFilter2D filter;
 
     [SerializeField] private JoyButton jumpButton;
+    public bool isOnGround => rb.IsTouching(filter);
+
     [SerializeField] private JoyStick attackStick;
     private bool isAttack;
     private const float attackDelay = 1.0f;
     private Vector2 attackDir;
+
     [SerializeField] private JoyStick focusStick;
     private Vector2 reflectDir;
+    [SerializeField]
+    private GameObject reflectDirArrow;
     private eState previousState;
     private float previousSpeed;
     private Enemy caughtEnemy;
@@ -84,6 +80,7 @@ public class PlayerContoroller : MonoBehaviour
         isAttack = false;
         caughtEnemy = null;
         attackCollider.SetActive(false);
+        reflectDirArrow.SetActive(false);
         volume = FindObjectOfType<PostProcessVolume>();
 
         volume.profile.TryGetSettings(out _edge);
@@ -102,9 +99,6 @@ public class PlayerContoroller : MonoBehaviour
 
         Debug.Log(State + " " + isOnGround);
     }
-
-    //public bool isOnGround => Physics2D.BoxCast(col.bounds.center, col.bounds.size, 0f, Vector2.down, .1f, jumpable);
-    public bool isOnGround => rb.IsTouching(filter);
 
     private void HandleState()
     {
@@ -169,9 +163,10 @@ public class PlayerContoroller : MonoBehaviour
                     rb.velocity = Vector2.up * jumpValocity;
                     animator.SetTrigger("jump");
                 }
-                else if (!doubleJumped && State == eState.JUMP)
+                else if (!doubleJumped)
                 {
                     doubleJumped = true;
+                    State = eState.TAKEOFF;
                     rb.velocity = Vector2.up * jumpValocity;
                     //animator.SetTrigger("jump");
                 }
@@ -277,6 +272,13 @@ public class PlayerContoroller : MonoBehaviour
                 if (reflectDir.magnitude < 0.01f)
                     reflectDir = -Vector2.one;
 
+                if (caughtEnemy)
+                {
+                    float angle = Mathf.Atan2(reflectDir.y, reflectDir.x) * Mathf.Rad2Deg;
+                    reflectDirArrow.transform.rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
+
+                }
+
                 if (_edge.intensity.value < 0.7f)
                     _edge.intensity.value += 0.01f;
                 break;
@@ -299,7 +301,11 @@ public class PlayerContoroller : MonoBehaviour
         foreach (Enemy enemy in enemies) enemy.Freeze();
 
         // catch enemy
-        CatchEnemy();
+        if (CatchEnemy())
+        {
+            reflectDirArrow.SetActive(true);
+            reflectDirArrow.transform.position = caughtEnemy.transform.position;
+        }
     }
     private void ExitFocus()
     {
@@ -316,6 +322,8 @@ public class PlayerContoroller : MonoBehaviour
         //if caught something -> reflect
         if (caughtEnemy != null)
         {
+            reflectDirArrow.SetActive(false);
+
             animator.SetTrigger("reflect");
             reflectDir = reflectDir.normalized;
             isAttack = false; // give player extra chance to attack in the air
