@@ -30,12 +30,16 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         switch (State)
         {
             case eButtonState.None:
+                if (hold)
+                    State = eButtonState.Down;
                 break;
             case eButtonState.Down:
                 if (hold)
                     State = eButtonState.Pressed;
                 break;
             case eButtonState.Pressed:
+                if (!hold)
+                    State = eButtonState.Up;
                 break;
             case eButtonState.Up:
                 if (!hold)
@@ -66,17 +70,11 @@ public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         OnDrag(eventData);
 
         hold = true;
-
-        if (State == eButtonState.None)
-            State = eButtonState.Down;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         hold = false;
-
-        if (State == eButtonState.Pressed)
-            State = eButtonState.Up;
 
         InputDir = Vector2.zero;
         stick.rectTransform.anchoredPosition = Vector2.zero;

@@ -26,12 +26,16 @@ public class JoyButton : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
         switch (State)
         {
             case eButtonState.None:
+                if (hold)
+                    State = eButtonState.Down;
                 break;
             case eButtonState.Down:
                 if (hold)
                     State = eButtonState.Pressed;
                 break;
             case eButtonState.Pressed:
+                if (!hold)
+                    State = eButtonState.Up;
                 break;
             case eButtonState.Up:
                 if (!hold)
@@ -43,16 +47,10 @@ public class JoyButton : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
     public void OnPointerDown(PointerEventData eventData)
     {
         hold = true;
-
-        if (State == eButtonState.None)
-            State = eButtonState.Down;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         hold = false;
-
-        if (State == eButtonState.Pressed)
-            State = eButtonState.Up;
     }
 }
